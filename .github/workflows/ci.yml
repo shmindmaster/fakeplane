@@ -15,13 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         node: [22, 24]
-        include:
-          - os: windows-latest
-            node: 22
-          - os: macos-latest
-            node: 24
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -34,12 +29,16 @@ jobs:
 
   runtime-older-node:
     # The test runner needs Node 22+, but fakeplane itself supports Node 18+.
-    name: runtime smoke (node ${{ matrix.node }})
-    runs-on: ubuntu-latest
+    name: runtime smoke (node ${{ matrix.node }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
         node: [18, 20]
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -54,11 +53,15 @@ jobs:
       - run: node dist/cli.js validate demo/scenarios examples/scenarios
       - run: node dist/cli.js demo
       - run: node dist/cli.js run examples/scenarios --agent "node examples/mcp-client/agent.mjs"
-      - run: node dist/cli.js from-trace test/fixtures/otlp-duplicate-refund.json -o /tmp/regression.yaml && node dist/cli.js validate /tmp/regression.yaml
+      - run: node dist/cli.js from-trace test/fixtures/otlp-duplicate-refund.json -o "$RUNNER_TEMP/regression.yaml" && node dist/cli.js validate "$RUNNER_TEMP/regression.yaml"
 
   action:
-    name: GitHub Action blocks a bad agent
-    runs-on: ubuntu-latest
+    name: GitHub Action blocks a bad agent (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -80,7 +83,9 @@ jobs:
           junit: naive-junit.xml
       - name: Check the naive agent failed
         if: steps.naive.outcome != 'failure'
+        shell: bash
         run: |
           echo "fakeplane should have failed the naive agent"
           exit 1
-      - run: grep -q '<failure' naive-junit.xml && ! grep -q '<failure' careful-junit.xml
+      - shell: bash
+        run: grep -q '<failure' naive-junit.xml && ! grep -q '<failure' careful-junit.xml

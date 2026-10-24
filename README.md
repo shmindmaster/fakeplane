@@ -32,7 +32,7 @@ Record/replay tools freeze responses. fakeplane keeps **state**: a ticket you up
 
 ## Quickstart (under 2 minutes)
 
-Needs Node 18 or newer. fakeplane is not on npm yet, so install it from GitHub:
+Needs Node 18 or newer on Windows, macOS or Linux; CI runs the full suite on all three. fakeplane is not on npm yet, so install it from GitHub:
 
 ```bash
 npx -y github:shmindmaster/fakeplane demo
