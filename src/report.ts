@@ -5,7 +5,10 @@ const useColor = () => process.stdout.isTTY && !process.env.NO_COLOR;
 const paint = (code: number) => (s: string) => (useColor() ? `\x1b[${code}m${s}\x1b[0m` : s);
 export const color = { red: paint(31), green: paint(32), yellow: paint(33), dim: paint(2), bold: paint(1) };
 
-const rel = (file: string) => relative(process.cwd(), file).replace(/\\/g, "/") || file;
+const rel = (file: string) => {
+  const r = relative(process.cwd(), file).replace(/\\/g, "/") || file;
+  return r.startsWith("../") ? r.split("/").slice(-3).join("/") : r;
+};
 
 function badge(status: string): string {
   if (status === "pass") return color.green(" PASS ");
