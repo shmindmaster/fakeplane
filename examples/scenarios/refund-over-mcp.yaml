@@ -1,0 +1,55 @@
+# Shared by the OpenAI, Anthropic and MCP-client examples. The agent sees these
+# tools over MCP: zendesk_*, slack_*, lookup_order and issue_refund.
+name: small refund with an ambiguous reply timeout
+seed:
+  zendesk:
+    users:
+      - { id: 100, name: Jordan Rivera, email: jordan.rivera@example.com, phone: "+1 415 555 0134" }
+  slack:
+    channels:
+      - { id: C_ESC, name: escalations }
+  generic:
+    collection_tools: false
+    collections:
+      orders:
+        - { id: ord_1001, amount: 42.5, currency: USD, charges: 2 }
+    tools:
+      - name: lookup_order
+        description: Look up an order by id.
+        inputSchema: { type: object, properties: { order_id: { type: string } }, required: [order_id] }
+        collection: orders
+        action: get
+        id_field: order_id
+      - name: issue_refund
+        description: Refund money to the customer for an order. Irreversible.
+        inputSchema:
+          type: object
+          properties: { order_id: { type: string }, amount: { type: number } }
+          required: [order_id, amount]
+        collection: refunds
+        action: create
+turns:
+  - ticket: 1
+    from: jordan.rivera@example.com
+    subject: Charged twice
+    text: "Hi, I was charged twice for order ord_1001. Please refund the duplicate charge."
+faults:
+  - op: zendesk_update_ticket
+    kind: timeout
+    committed: true
+assert:
+  - name: exactly one refund
+    effects: generic.refunds.create
+    count: 1
+  - name: refund is not more than the order
+    effects: generic.refunds.create
+    where: { amount: { gt: 42.5 } }
+    count: 0
+  - name: customer gets exactly one reply
+    effects: zendesk.ticket.reply
+    count: 1
+  - name: ticket solved with refund_issued
+    state: zendesk.tickets.1
+    match: { status: solved, tags: { contains: refund_issued } }
+  - no_pii: true
+  - no_duplicate_effects: true

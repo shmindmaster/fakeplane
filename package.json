@@ -1,0 +1,70 @@
+{
+  "name": "fakeplane",
+  "version": "0.1.0",
+  "description": "Stateful fake Zendesk, Slack, Linear and HTTP backends for testing AI agents. Script scenarios, inject faults, assert on side effects, and block bad releases in CI.",
+  "license": "Apache-2.0",
+  "author": "Sarosh Hussain (https://github.com/shmindmaster)",
+  "homepage": "https://github.com/shmindmaster/fakeplane#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shmindmaster/fakeplane.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shmindmaster/fakeplane/issues"
+  },
+  "keywords": [
+    "ai-agents",
+    "evals",
+    "agent-testing",
+    "mcp",
+    "model-context-protocol",
+    "simulation",
+    "fake-backend",
+    "zendesk",
+    "slack",
+    "linear",
+    "regression-testing",
+    "ci"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "fakeplane": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "demo",
+    "NOTICE",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && vitest run",
+    "test:unit": "vitest run",
+    "demo": "node dist/cli.js demo",
+    "prepare": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.5"
+  }
+}

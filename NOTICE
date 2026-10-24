@@ -1,0 +1,12 @@
+fakeplane
+Copyright 2026 Sarosh Hussain
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Zendesk, Slack and Linear are trademarks of their respective owners. fakeplane
+is not affiliated with, sponsored by or endorsed by them. It imitates the
+public shape of their APIs for testing purposes only.
+
+All bundled fixtures, scenarios, names, email addresses and phone numbers are
+synthetic. Phone numbers use the reserved 555-01xx range and email addresses
+use example domains.

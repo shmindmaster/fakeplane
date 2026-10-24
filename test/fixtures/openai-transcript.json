@@ -1,0 +1,13 @@
+{
+  "messages": [
+    { "role": "system", "content": "You are a support agent." },
+    { "role": "user", "content": "My package never arrived, order B-12. Phone is 415-555-0199." },
+    { "role": "assistant", "content": null, "tool_calls": [{ "id": "c1", "type": "function", "function": { "name": "lookup_shipment", "arguments": "{\"order_id\":\"B-12\"}" } }] },
+    { "role": "tool", "tool_call_id": "c1", "content": "{\"status\":\"lost\",\"carrier\":\"ExampleShip\"}" },
+    { "role": "assistant", "content": null, "tool_calls": [{ "id": "c2", "type": "function", "function": { "name": "send_customer_email", "arguments": "{\"to\":\"riley@example.org\",\"body\":\"Call us at 415-555-0199\"}" } }] },
+    { "role": "tool", "tool_call_id": "c2", "content": "Error: 429 Too Many Requests" },
+    { "role": "assistant", "content": null, "tool_calls": [{ "id": "c3", "type": "function", "function": { "name": "send_customer_email", "arguments": "{\"to\":\"riley@example.org\",\"body\":\"Call us at 415-555-0199\"}" } }] },
+    { "role": "tool", "tool_call_id": "c3", "content": "{\"sent\":true}" },
+    { "role": "assistant", "content": "I've emailed you." }
+  ]
+}

@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (node ${{ matrix.node }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [22, 24]
+        include:
+          - os: windows-latest
+            node: 22
+          - os: macos-latest
+            node: 24
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  runtime-older-node:
+    # The test runner needs Node 22+, but fakeplane itself supports Node 18+.
+    name: runtime smoke (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci && npm run build
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node dist/cli.js --version
+      - run: node dist/cli.js validate demo/scenarios examples/scenarios
+      - run: node dist/cli.js demo
+      - run: node dist/cli.js run examples/scenarios --agent "node examples/mcp-client/agent.mjs"
+      - run: node dist/cli.js from-trace test/fixtures/otlp-duplicate-refund.json -o /tmp/regression.yaml && node dist/cli.js validate /tmp/regression.yaml
+
+  action:
+    name: GitHub Action blocks a bad agent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Careful agent passes
+        uses: ./
+        with:
+          scenarios: demo/scenarios
+          agent: node demo/agents/careful.mjs
+          junit: careful-junit.xml
+      - name: Naive agent is blocked
+        id: naive
+        continue-on-error: true
+        uses: ./
+        with:
+          scenarios: demo/scenarios
+          agent: node demo/agents/naive.mjs
+          junit: naive-junit.xml
+      - name: Check the naive agent failed
+        if: steps.naive.outcome != 'failure'
+        run: |
+          echo "fakeplane should have failed the naive agent"
+          exit 1
+      - run: grep -q '<failure' naive-junit.xml && ! grep -q '<failure' careful-junit.xml

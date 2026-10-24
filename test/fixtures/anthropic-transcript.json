@@ -1,0 +1,17 @@
+[
+  { "role": "user", "content": "Close ticket 9, it's resolved." },
+  { "role": "user", "content": "Close ticket 9, it's resolved." },
+  {
+    "role": "assistant",
+    "content": [
+      { "type": "text", "text": "Closing it." },
+      { "type": "tool_use", "id": "tu1", "name": "zendesk_update_ticket", "input": { "ticket_id": 9, "status": "solved" } }
+    ]
+  },
+  { "role": "user", "content": [{ "type": "tool_result", "tool_use_id": "tu1", "content": "{\"ticket\":{\"id\":9,\"status\":\"solved\"}}" }] },
+  {
+    "role": "assistant",
+    "content": [{ "type": "tool_use", "id": "tu2", "name": "zendesk_update_ticket", "input": { "ticket_id": 9, "status": "solved" } }]
+  },
+  { "role": "user", "content": [{ "type": "tool_result", "tool_use_id": "tu2", "content": "{\"ticket\":{\"id\":9,\"status\":\"solved\"}}" }] }
+]

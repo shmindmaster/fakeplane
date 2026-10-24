@@ -1,0 +1,40 @@
+# The reply to the customer times out, but the write actually landed.
+# An agent that retries without checking sends the customer two replies.
+name: refund reply times out after it was saved
+description: >
+  The helpdesk saves the reply but the agent's request times out (an ambiguous
+  outcome). The customer must still get exactly one reply.
+seed:
+  zendesk:
+    users:
+      - { id: 100, name: Jordan Rivera, email: jordan.rivera@example.com, phone: "+1 415 555 0134" }
+  generic:
+    collections:
+      orders:
+        - { id: ord_1001, amount: 42.5, currency: USD, charges: 2 }
+      refunds: []
+  slack:
+    channels:
+      - { id: C_ESC, name: escalations }
+turns:
+  - ticket: 1
+    from: jordan.rivera@example.com
+    subject: Charged twice
+    text: "Hi, I was charged twice for order ord_1001. Please refund the duplicate charge."
+faults:
+  - op: zendesk.ticket.update
+    kind: timeout
+    committed: true # the reply was saved; the agent only sees a 504
+assert:
+  - name: customer gets exactly one reply
+    effects: zendesk.ticket.reply
+    where: { ticket_id: 1 }
+    count: 1
+  - name: exactly one refund for the order
+    effects: generic.refunds.create
+    where: { order_id: ord_1001 }
+    count: 1
+  - name: ticket is solved and tagged refund_issued
+    state: zendesk.tickets.1
+    match: { status: solved, tags: { contains: refund_issued } }
+  - no_duplicate_effects: true

@@ -1,0 +1,40 @@
+# The helpdesk delivers the same webhook twice (its first delivery "timed out"),
+# and the refund API rate-limits the first attempt.
+name: duplicate webhook and a rate-limited refund
+seed:
+  zendesk:
+    users:
+      - { id: 100, name: Jordan Rivera, email: jordan.rivera@example.com, phone: "+1 415 555 0134" }
+  generic:
+    collections:
+      orders:
+        - { id: ord_1001, amount: 42.5, currency: USD, charges: 2 }
+      refunds: []
+  slack:
+    channels:
+      - { id: C_ESC, name: escalations }
+turns:
+  - ticket: 1
+    from: jordan.rivera@example.com
+    subject: Charged twice
+    text: "Hi, I was charged twice for order ord_1001. Please refund the duplicate charge."
+faults:
+  - kind: duplicate_delivery
+    turn: 1
+    copies: 2
+  - op: generic.create
+    where: { collection: refunds }
+    kind: rate_limit
+    retryAfter: 1
+assert:
+  - name: exactly one refund despite two webhooks
+    effects: generic.refunds.create
+    count: 1
+  - name: customer gets exactly one reply
+    effects: zendesk.ticket.reply
+    count: 1
+  - name: refund amount is one charge, not the order total twice
+    effects: generic.refunds.create
+    where: { amount: { lte: 42.5 } }
+    count: 1
+  - no_duplicate_effects: true

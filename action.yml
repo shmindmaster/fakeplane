@@ -1,0 +1,82 @@
+name: fakeplane agent scenarios
+description: Run AI agent scenarios against stateful fake Zendesk, Slack, Linear and HTTP backends, and fail the job when the agent regresses.
+author: Sarosh Hussain
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  scenarios:
+    description: Scenario files or directories, space-separated.
+    default: scenarios
+  agent:
+    description: Agent command. Overrides the agent in fakeplane.config.yaml and in scenarios.
+    required: false
+    default: ""
+  config:
+    description: Path to a fakeplane config file.
+    required: false
+    default: ""
+  repeat:
+    description: Run each scenario this many times.
+    required: false
+    default: ""
+  junit:
+    description: Where to write the JUnit XML report.
+    default: fakeplane-junit.xml
+  json:
+    description: Where to write the full JSON report (calls, effects, state). Empty to skip.
+    default: ""
+  version:
+    description: fakeplane version from npm. Empty builds fakeplane from this action's own source.
+    default: ""
+  working-directory:
+    description: Directory to run in.
+    default: "."
+
+outputs:
+  exit-code:
+    description: 0 when every scenario passed, 1 when one failed, 2 on a usage or config error.
+    value: ${{ steps.run.outputs.exit-code }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build fakeplane from the action source
+      if: inputs.version == ''
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        npm ci --no-audit --no-fund --loglevel=error
+        npm run build --silent
+
+    - name: Run scenarios
+      id: run
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        FP_SCENARIOS: ${{ inputs.scenarios }}
+        FP_AGENT: ${{ inputs.agent }}
+        FP_CONFIG: ${{ inputs.config }}
+        FP_REPEAT: ${{ inputs.repeat }}
+        FP_JUNIT: ${{ inputs.junit }}
+        FP_JSON: ${{ inputs.json }}
+        FP_VERSION: ${{ inputs.version }}
+        FP_ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set +e
+        read -ra paths <<< "$FP_SCENARIOS"
+        args=(run "${paths[@]}" --junit "$FP_JUNIT")
+        [ -n "$GITHUB_STEP_SUMMARY" ] && args+=(--markdown "$GITHUB_STEP_SUMMARY")
+        [ -n "$FP_AGENT" ] && args+=(--agent "$FP_AGENT")
+        [ -n "$FP_CONFIG" ] && args+=(--config "$FP_CONFIG")
+        [ -n "$FP_REPEAT" ] && args+=(--repeat "$FP_REPEAT")
+        [ -n "$FP_JSON" ] && args+=(--json "$FP_JSON")
+        if [ -n "$FP_VERSION" ]; then
+          npx --yes "fakeplane@$FP_VERSION" "${args[@]}"
+        else
+          node "$FP_ACTION_PATH/dist/cli.js" "${args[@]}"
+        fi
+        code=$?
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        exit $code

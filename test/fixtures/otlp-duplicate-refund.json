@@ -1,0 +1,64 @@
+{
+  "resourceSpans": [
+    {
+      "resource": { "attributes": [{ "key": "service.name", "value": { "stringValue": "support-agent" } }] },
+      "scopeSpans": [
+        {
+          "scope": { "name": "agent" },
+          "spans": [
+            {
+              "traceId": "t1", "spanId": "s1", "name": "chat gpt-test", "kind": 3, "startTimeUnixNano": "1000",
+              "attributes": [
+                { "key": "gen_ai.operation.name", "value": { "stringValue": "chat" } },
+                { "key": "gen_ai.input.messages", "value": { "stringValue": "[{\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"content\":\"Please refund order A-77, I was charged twice. Reach me at casey.morgan@example.net\"}]}]" } }
+              ]
+            },
+            {
+              "traceId": "t1", "spanId": "s2", "name": "execute_tool get_order", "kind": 1, "startTimeUnixNano": "2000",
+              "attributes": [
+                { "key": "gen_ai.operation.name", "value": { "stringValue": "execute_tool" } },
+                { "key": "gen_ai.tool.name", "value": { "stringValue": "get_order" } },
+                { "key": "gen_ai.tool.call.arguments", "value": { "stringValue": "{\"order_id\":\"A-77\"}" } },
+                { "key": "gen_ai.tool.call.result", "value": { "stringValue": "{\"order_id\":\"A-77\",\"amount\":19.99,\"email\":\"casey.morgan@example.net\"}" } }
+              ]
+            },
+            {
+              "traceId": "t1", "spanId": "s3", "name": "execute_tool refund_payment", "kind": 1, "startTimeUnixNano": "3000",
+              "status": { "code": 2, "message": "upstream request timed out" },
+              "attributes": [
+                { "key": "gen_ai.operation.name", "value": { "stringValue": "execute_tool" } },
+                { "key": "gen_ai.tool.name", "value": { "stringValue": "refund_payment" } },
+                { "key": "gen_ai.tool.call.arguments", "value": { "stringValue": "{\"order_id\":\"A-77\",\"amount\":19.99}" } }
+              ]
+            },
+            {
+              "traceId": "t1", "spanId": "s4", "name": "execute_tool refund_payment", "kind": 1, "startTimeUnixNano": "4000",
+              "attributes": [
+                { "key": "gen_ai.operation.name", "value": { "stringValue": "execute_tool" } },
+                { "key": "gen_ai.tool.name", "value": { "stringValue": "refund_payment" } },
+                { "key": "gen_ai.tool.call.arguments", "value": { "stringValue": "{\"order_id\":\"A-77\",\"amount\":19.99}" } },
+                { "key": "gen_ai.tool.call.result", "value": { "stringValue": "{\"refund_id\":\"re_2\",\"status\":\"succeeded\"}" } }
+              ]
+            },
+            {
+              "traceId": "t1", "spanId": "s5", "name": "POST", "kind": 3, "startTimeUnixNano": "5000",
+              "attributes": [
+                { "key": "http.request.method", "value": { "stringValue": "PUT" } },
+                { "key": "url.full", "value": { "stringValue": "https://example-co.zendesk.com/api/v2/tickets/55.json" } },
+                { "key": "http.response.status_code", "value": { "intValue": "429" } }
+              ]
+            },
+            {
+              "traceId": "t1", "spanId": "s6", "name": "POST", "kind": 3, "startTimeUnixNano": "6000",
+              "attributes": [
+                { "key": "http.request.method", "value": { "stringValue": "POST" } },
+                { "key": "url.full", "value": { "stringValue": "https://notify.internal.example/v1/sms" } },
+                { "key": "http.response.status_code", "value": { "intValue": "200" } }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

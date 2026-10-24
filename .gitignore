@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.fakeplane/
+fakeplane-report/
+*.tgz
+.env
+.env.*
+.DS_Store
