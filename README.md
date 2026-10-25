@@ -2,6 +2,8 @@
 
 **Know your agent works before your customers find out it doesn't.**
 
+![A naive support agent fails all three fakeplane scenarios (a refund over the limit, a duplicate reply, a double refund) and a careful agent passes all three](docs/media/fakeplane-demo.gif)
+
 fakeplane gives your AI agent stateful fake versions of the systems it acts on (a Zendesk-style helpdesk, Slack, Linear, and any HTTP/JSON API) over plain HTTP and over MCP. You script the conversation, inject the failures production will throw at it (timeouts that actually committed, 429s, duplicate webhooks), and assert on what the agent **would have done**: exactly one reply, no refund above $100, ticket solved with the right tag, no customer contact details in Slack. It runs in CI and fails the build when the agent regresses.
 
 ```text
