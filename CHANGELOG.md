@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 (2026-10-25)
 
 - The CLI honours `FORCE_COLOR`: PASS/FAIL badges and marks keep their colour when output is piped, recorded or in CI logs. `FORCE_COLOR=0` turns colour off; otherwise `NO_COLOR` turns it off and a terminal turns it on.
 
