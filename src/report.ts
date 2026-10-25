@@ -1,8 +1,18 @@
 import { relative } from "node:path";
 import type { RunReport, ScenarioResult } from "./runner.js";
 
-const useColor = () => process.stdout.isTTY && !process.env.NO_COLOR;
-const paint = (code: number) => (s: string) => (useColor() ? `\x1b[${code}m${s}\x1b[0m` : s);
+/**
+ * FORCE_COLOR turns colour on even when output is piped or recorded (FORCE_COLOR=0 or false turns it
+ * off); otherwise NO_COLOR turns it off and a terminal turns it on. Same precedence as Node itself.
+ */
+export function shouldColor(env: NodeJS.ProcessEnv = process.env, isTTY = process.stdout.isTTY): boolean {
+  const force = env.FORCE_COLOR;
+  if (force !== undefined) return !["0", "false"].includes(force.trim().toLowerCase());
+  if (env.NO_COLOR) return false;
+  return Boolean(isTTY);
+}
+
+const paint = (code: number) => (s: string) => (shouldColor() ? `\x1b[${code}m${s}\x1b[0m` : s);
 export const color = { red: paint(31), green: paint(32), yellow: paint(33), dim: paint(2), bold: paint(1) };
 
 const rel = (file: string) => {
