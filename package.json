@@ -1,6 +1,6 @@
 {
   "name": "fakeplane",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Stateful fake Zendesk, Slack, Linear and HTTP backends for testing AI agents. Script scenarios, inject faults, assert on side effects, and block bad releases in CI.",
   "license": "Apache-2.0",
   "author": "Sarosh Hussain (https://github.com/shmindmaster)",
