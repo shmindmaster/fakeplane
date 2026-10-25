@@ -5,7 +5,13 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = join(import.meta.dirname, "..");
-const cli = (args: string[], cwd = root) => spawnSync(process.execPath, [join(root, "dist", "cli.js"), ...args], { cwd, encoding: "utf8", env: { ...process.env, NO_COLOR: "1" } });
+// Plain output for text assertions, even where the runner sets FORCE_COLOR.
+const plainEnv = (): NodeJS.ProcessEnv => {
+  const env: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: "1" };
+  delete env.FORCE_COLOR;
+  return env;
+};
+const cli = (args: string[], cwd = root, env = plainEnv()) => spawnSync(process.execPath, [join(root, "dist", "cli.js"), ...args], { cwd, encoding: "utf8", env });
 
 describe("cli", () => {
   it("prints version and help", () => {
@@ -61,7 +67,7 @@ describe("cli", () => {
   it("serves fakes with `up` and reports and asserts with `report`", async () => {
     const { spawn } = await import("node:child_process");
     const port = 40000 + Math.floor(Math.random() * 20000);
-    const up = spawn(process.execPath, [join(root, "dist", "cli.js"), "up", "--scenario", "demo/scenarios/refund-ambiguous-timeout.yaml", "--port", String(port)], { cwd: root, env: { ...process.env, NO_COLOR: "1" } });
+    const up = spawn(process.execPath, [join(root, "dist", "cli.js"), "up", "--scenario", "demo/scenarios/refund-ambiguous-timeout.yaml", "--port", String(port)], { cwd: root, env: plainEnv() });
     try {
       await new Promise<void>((resolve, reject) => {
         up.stdout.on("data", (d) => String(d).includes("Ctrl+C") && resolve());
@@ -70,7 +76,7 @@ describe("cli", () => {
       const base = `http://127.0.0.1:${port}`;
       await fetch(`${base}/_fakeplane/turn`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ticket: 1, from: "jordan.rivera@example.com", text: "refund ord_1001" }) });
       await fetch(`${base}/zendesk/api/v2/tickets/1`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ticket: { comment: { body: "done" } } }) });
-      const r = spawnSync(process.execPath, [join(root, "dist", "cli.js"), "report", "--url", base, "--assert", "demo/scenarios/refund-ambiguous-timeout.yaml"], { cwd: root, encoding: "utf8", env: { ...process.env, NO_COLOR: "1" } });
+      const r = spawnSync(process.execPath, [join(root, "dist", "cli.js"), "report", "--url", base, "--assert", "demo/scenarios/refund-ambiguous-timeout.yaml"], { cwd: root, encoding: "utf8", env: plainEnv() });
       expect(r.stdout).toContain("zendesk.ticket.reply");
       expect(r.stdout).toContain("✓ customer gets exactly one reply");
       expect(r.stdout).toContain("✗ exactly one refund for the order");
@@ -78,6 +84,16 @@ describe("cli", () => {
     } finally {
       up.kill();
     }
+  });
+
+  it("honours FORCE_COLOR when output is not a terminal", () => {
+    const ansi = /\x1b\[\d+m/;
+    const forced = cli(["validate", "demo/scenarios"], root, { ...plainEnv(), FORCE_COLOR: "1" });
+    expect(forced.stdout).toMatch(ansi);
+    const off = { ...process.env, FORCE_COLOR: "0" };
+    delete off.NO_COLOR;
+    expect(cli(["validate", "demo/scenarios"], root, off).stdout).not.toMatch(ansi);
+    expect(cli(["validate", "demo/scenarios"]).stdout).not.toMatch(ansi);
   });
 
   it("runs the demo", () => {
