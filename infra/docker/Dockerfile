@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1
+
+FROM node:22-bookworm-slim
+
+ENV npm_config_update_notifier=false \
+    npm_config_fund=false
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts
+
+COPY tsconfig.json vitest.config.ts ./
+COPY src ./src
+COPY test ./test
+COPY demo ./demo
+COPY examples ./examples
+
+CMD ["npm", "test"]

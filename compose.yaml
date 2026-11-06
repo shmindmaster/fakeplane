@@ -1,0 +1,21 @@
+name: fakeplane
+
+x-app: &app
+  image: fakeplane:local
+  build:
+    context: .
+    dockerfile: infra/docker/Dockerfile
+  volumes:
+    - ./src:/app/src:ro
+    - ./test:/app/test:ro
+    - ./demo:/app/demo:ro
+    - ./examples:/app/examples:ro
+
+services:
+  test:
+    <<: *app
+    command: ["npm", "test"]
+
+  typecheck:
+    <<: *app
+    command: ["npm", "run", "typecheck"]
