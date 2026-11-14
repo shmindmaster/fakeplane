@@ -43,3 +43,12 @@ Reviewers: Codex (primary) and Sentry Seer (until 2026-12-08). No other reviewer
 - Tenant isolation on every query, job and storage path.
 - Money and status calculations are correct and covered by tests.
 - Documents and exports are access-controlled.
+
+## Cloud setup
+
+For Codex Cloud tasks and any fresh checkout. Use the commands section above for anything not listed here.
+
+- Install (Node >=18): `npm ci`.
+- Verify: `npm run typecheck`, `npm run test`.
+- Secrets stay unset. Use the repo's test, mock or demo mode and synthetic data; never production keys or real customer data. A task that truly needs a credential uses the owner's Codex Personal vault.
+- Heavy work (full end-to-end suites, mobile builds) runs in CI or on the owner's build host, not in the cloud task.
