@@ -27,7 +27,7 @@ Node 22. Dependencies stay in the image. Do not create `node_modules` or
 Both compose commands pass. Docs match the change. Commit. The GitHub Action
 check stays on the runner because `uses: ./` cannot run inside the image.
 
-## Review guidelines
+## Code Review Rules
 
 Shared fleet guideline: AgentHub `docs/development/pr-review-guideline.md`.
 Reviewers: Codex (primary) and Sentry Seer (until 2026-12-08). No other reviewer.
@@ -39,7 +39,7 @@ Reviewers: Codex (primary) and Sentry Seer (until 2026-12-08). No other reviewer
 - High-risk PRs (auth, tenancy, billing, regulated data, migrations, exports): request `@codex security review`.
 - At most two fix-and-rereview cycles, then escalate. No auto-merge.
 
-### Product invariants
+### Product invariants (flag even when tests pass)
 - Tenant isolation on every query, job and storage path.
 - Money and status calculations are correct and covered by tests.
 - Documents and exports are access-controlled.
