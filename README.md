@@ -34,10 +34,10 @@ Record/replay tools freeze responses. fakeplane keeps **state**: a ticket you up
 
 ## Quickstart (under 2 minutes)
 
-Needs Node 18 or newer. CI runs the suite in Docker. fakeplane is not on npm yet, so install it from GitHub:
+Needs Node 18 or newer. CI runs the suite in Docker. Run the published package from npm:
 
 ```bash
-npx -y github:shmindmaster/fakeplane demo
+npx -y fakeplane demo
 ```
 
 The demo runs three scenarios against two bundled support agents. The naive one fails all three for real reasons (double reply after an ambiguous timeout, double refund on a duplicate webhook, a $1,250 refund plus customer email in Slack). The careful one passes.
@@ -45,11 +45,11 @@ The demo runs three scenarios against two bundled support agents. The naive one 
 Then start your own project:
 
 ```bash
-npx -y github:shmindmaster/fakeplane init   # writes scenarios/, fakeplane.config.yaml, example-agent.mjs
-npx -y github:shmindmaster/fakeplane run    # 1 passed
+npx -y fakeplane init   # writes scenarios/, fakeplane.config.yaml, example-agent.mjs
+npx -y fakeplane run    # 1 passed
 ```
 
-Replace `agent.command` in `fakeplane.config.yaml` with your agent, and change the scenario to your workflow. Once it's on npm, `npx fakeplane` replaces `npx -y github:shmindmaster/fakeplane`.
+Replace `agent.command` in `fakeplane.config.yaml` with your agent, and change the scenario to your workflow.
 
 ## How it works
 
