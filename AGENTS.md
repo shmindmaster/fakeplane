@@ -47,4 +47,4 @@ Codex leads security review and becomes the primary PR reviewer after the transi
 
 ## Cloud setup
 
-Use the Node 22 container commands above for Codex Cloud work. If Docker is unavailable, use the build host for both commands. Use synthetic scenarios and leave provider credentials unset. Run the GitHub Action check on the runner.
+Use the Node 22 container commands above for Codex Cloud work. When the local Docker daemon is unavailable, run the same commands against an available remote Docker context. Use synthetic scenarios and leave provider credentials unset. Run the GitHub Action check on the runner.
