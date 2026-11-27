@@ -1,0 +1,23 @@
+﻿name: "Copilot Setup Steps"
+on:
+  workflow_dispatch:
+  push:
+    paths: [.github/workflows/copilot-setup-steps.yml]
+  pull_request:
+    paths: [.github/workflows/copilot-setup-steps.yml]
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24.20.0"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Report runtime
+        run: echo "node=$(node -v)"
