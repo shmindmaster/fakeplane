@@ -1,0 +1,171 @@
+{
+  "summaries": [
+    {
+      "suite": "support_triage",
+      "cases": 4,
+      "run_completion": 100.0,
+      "task_success": 100.0,
+      "checks_by_type": {
+        "contains_any": "4/4"
+      }
+    },
+    {
+      "suite": "tool_call_validity",
+      "cases": 4,
+      "run_completion": 100.0,
+      "task_success": 100.0,
+      "checks_by_type": {
+        "json_valid": "3/3",
+        "json_field": "5/5",
+        "regex": "1/1",
+        "contains_any": "1/1"
+      }
+    }
+  ],
+  "results": [
+    {
+      "suite": "support_triage",
+      "id": "triage-billing-refund",
+      "completed": true,
+      "success": true,
+      "checks": [
+        {
+          "check": "contains_any",
+          "ok": true
+        }
+      ],
+      "error": null,
+      "ms": 0,
+      "usage": {}
+    },
+    {
+      "suite": "support_triage",
+      "id": "triage-crash-on-login",
+      "completed": true,
+      "success": true,
+      "checks": [
+        {
+          "check": "contains_any",
+          "ok": true
+        }
+      ],
+      "error": null,
+      "ms": 0,
+      "usage": {}
+    },
+    {
+      "suite": "support_triage",
+      "id": "triage-address-change",
+      "completed": true,
+      "success": true,
+      "checks": [
+        {
+          "check": "contains_any",
+          "ok": true
+        }
+      ],
+      "error": null,
+      "ms": 0,
+      "usage": {}
+    },
+    {
+      "suite": "support_triage",
+      "id": "triage-empty-input",
+      "completed": true,
+      "success": true,
+      "checks": [
+        {
+          "check": "contains_any",
+          "ok": true
+        }
+      ],
+      "error": null,
+      "ms": 0,
+      "usage": {}
+    },
+    {
+      "suite": "tool_call_validity",
+      "id": "passthrough-refund-call",
+      "completed": true,
+      "success": true,
+      "checks": [
+        {
+          "check": "json_valid",
+          "ok": true
+        },
+        {
+          "check": "json_field",
+          "ok": true
+        },
+        {
+          "check": "json_field",
+          "ok": true
+        }
+      ],
+      "error": null,
+      "ms": 0,
+      "usage": {}
+    },
+    {
+      "suite": "tool_call_validity",
+      "id": "passthrough-escalate-call",
+      "completed": true,
+      "success": true,
+      "checks": [
+        {
+          "check": "json_valid",
+          "ok": true
+        },
+        {
+          "check": "json_field",
+          "ok": true
+        },
+        {
+          "check": "json_field",
+          "ok": true
+        }
+      ],
+      "error": null,
+      "ms": 0,
+      "usage": {}
+    },
+    {
+      "suite": "tool_call_validity",
+      "id": "idempotency-key-present",
+      "completed": true,
+      "success": true,
+      "checks": [
+        {
+          "check": "json_valid",
+          "ok": true
+        },
+        {
+          "check": "json_field",
+          "ok": true
+        },
+        {
+          "check": "regex",
+          "ok": true
+        }
+      ],
+      "error": null,
+      "ms": 0,
+      "usage": {}
+    },
+    {
+      "suite": "tool_call_validity",
+      "id": "no-consequential-write-without-key",
+      "completed": true,
+      "success": true,
+      "checks": [
+        {
+          "check": "contains_any",
+          "ok": true
+        }
+      ],
+      "error": null,
+      "ms": 0,
+      "usage": {}
+    }
+  ]
+}

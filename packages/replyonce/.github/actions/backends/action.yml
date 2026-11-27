@@ -1,0 +1,60 @@
+name: Start Postgres and Redis
+description: >
+  Starts PostgreSQL 17 on localhost:5432 (user postgres, password postgres) and a Redis-compatible
+  server on localhost:6379 on any GitHub-hosted runner. Service containers only run on Linux, so
+  macOS uses Homebrew and Windows uses the preinstalled PostgreSQL service plus Memurai.
+runs:
+  using: composite
+  steps:
+    - name: Linux (Docker)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        docker run -d --name replyonce-pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:17-alpine
+        docker run -d --name replyonce-redis -p 6379:6379 redis:7-alpine
+        # The published port accepts connections before the server inside is ready.
+        for _ in $(seq 1 60); do docker exec replyonce-pg pg_isready -U postgres -h 127.0.0.1 -q && break; sleep 1; done
+        for _ in $(seq 1 60); do [ "$(docker exec replyonce-redis redis-cli ping 2>/dev/null)" = PONG ] && break; sleep 1; done
+
+    - name: macOS (Homebrew)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        HOMEBREW_NO_AUTO_UPDATE=1 brew install --quiet postgresql@17 redis
+        pg_bin="$(brew --prefix postgresql@17)/bin"
+        brew services start postgresql@17
+        brew services start redis
+        for _ in $(seq 1 60); do "$pg_bin/pg_isready" -h localhost -q && break; sleep 1; done
+        "$pg_bin/psql" -h localhost -d postgres -v ON_ERROR_STOP=1 \
+          -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'postgres') THEN CREATE ROLE postgres SUPERUSER LOGIN; END IF; END \$\$;" \
+          -c "ALTER ROLE postgres PASSWORD 'postgres';"
+
+    - name: Windows (PostgreSQL service and Memurai)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $pg = Get-Service -Name 'postgresql*' | Select-Object -First 1
+        Set-Service -InputObject $pg -StartupType Manual
+        Start-Service -InputObject $pg
+        # The runner image ships PostgreSQL with superuser postgres / root.
+        $env:PGPASSWORD = 'root'
+        & (Join-Path $env:PGBIN 'psql.exe') -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c "ALTER ROLE postgres PASSWORD 'postgres';"
+        if ($LASTEXITCODE -ne 0) { throw 'Could not set the postgres password.' }
+        choco install memurai-developer -y --no-progress
+        if ($LASTEXITCODE -ne 0) { throw 'Memurai install failed.' }
+
+    - name: Wait for both ports
+      shell: bash
+      run: |
+        node -e '
+          const net = require("node:net");
+          const wait = (port) => new Promise((resolve, reject) => {
+            const deadline = Date.now() + 120000;
+            const attempt = () => {
+              const s = net.connect(port, "127.0.0.1", () => { s.end(); resolve(); });
+              s.on("error", () => Date.now() > deadline ? reject(new Error("port " + port + " never opened")) : setTimeout(attempt, 1000));
+            };
+            attempt();
+          });
+          Promise.all([wait(5432), wait(6379)]).then(() => console.log("postgres and redis are up"), (e) => { console.error(e.message); process.exit(1); });
+        '

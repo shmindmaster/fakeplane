@@ -1,0 +1,62 @@
+name: Release (Python)
+
+# Pushing a python-v* tag runs the Python tests, builds the sdist and wheel, then uploads them to
+# PyPI through PyPI trusted publishing (GitHub Actions OIDC, no stored token).
+
+on:
+  push:
+    tags: ['python-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-python-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REPLYONCE_PG_URL: postgres://postgres:postgres@localhost:5432/postgres
+  REPLYONCE_REDIS_URL: redis://127.0.0.1:6379
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+  REDIS_URL: redis://127.0.0.1:6379
+
+jobs:
+  build:
+    name: Test and build the Python package
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/backends
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: '3.13'
+      - name: Tag matches the package version
+        run: test "${GITHUB_REF_NAME}" = "python-v$(sed -n 's/^version = "\(.*\)"$/\1/p' pyproject.toml | head -n 1)"
+      - run: uv sync
+      - run: uv run pytest -q
+      - run: uv build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: python-dist
+          path: python/dist/
+          retention-days: 7
+
+  pypi:
+    name: Publish replyonce to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: python-dist
+          path: dist/
+      - name: Publish (PyPI trusted publishing, no stored token)
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3

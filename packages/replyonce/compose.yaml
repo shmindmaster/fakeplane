@@ -1,0 +1,68 @@
+name: replyonce
+
+x-node: &node
+  image: replyonce-node:local
+  build:
+    context: .
+    dockerfile: infra/docker/node.Dockerfile
+  volumes:
+    - ./src:/app/src:ro
+    - ./test:/app/test:ro
+    - ./examples:/app/examples:ro
+  environment:
+    REPLYONCE_PG_URL: postgres://postgres:postgres@postgres:5432/postgres
+    REPLYONCE_REDIS_URL: redis://redis:6379
+    DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+    REDIS_URL: redis://redis:6379
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  test:
+    <<: *node
+    command: ["npm", "test"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  typecheck:
+    <<: *node
+    command: ["npm", "run", "typecheck"]
+
+  python:
+    image: replyonce-python:local
+    build:
+      context: .
+      dockerfile: infra/docker/python.Dockerfile
+    volumes:
+      - ./python/src:/app/src:ro
+      - ./python/tests:/app/tests:ro
+    environment:
+      REPLYONCE_PG_URL: postgres://postgres:postgres@postgres:5432/postgres
+      REPLYONCE_REDIS_URL: redis://redis:6379
+    command: ["uv", "run", "pytest", "-q"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy

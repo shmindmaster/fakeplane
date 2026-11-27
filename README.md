@@ -226,3 +226,14 @@ await server.stop();
 ## Contributing, security, license
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md). Licensed under [Apache-2.0](LICENSE); see [NOTICE](NOTICE). Zendesk, Slack and Linear are trademarks of their owners. fakeplane is not affiliated with or endorsed by them; it imitates the public shape of their APIs for testing.
+
+## Related agent tooling (consolidated)
+
+Standalone OSS tools live under `packages/` after the 2026-11-27 portfolio consolidation:
+
+- `packages/replyonce` — idempotency / effect ledger for tool-calling agents
+- `packages/subtext-scan` — hidden-instruction scanner for PDF/DOCX/HTML
+- `packages/safeguards` — system-prompt safeguard scoring corpus
+- `packages/agent-eval-playbook` — eval playbook + golden-set harness
+
+Each package keeps its own license and README. See `packages/README.md`.

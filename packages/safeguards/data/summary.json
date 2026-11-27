@@ -1,0 +1,110 @@
+{
+  "dataset_version": "1.0.0",
+  "ruleset": "prompt-safeguards@0.6.0",
+  "prompts": 356,
+  "max_score_any_prompt": 34,
+  "sources": [
+    {
+      "key": "production",
+      "label": "Production agent system prompts",
+      "repo": "x1xhlol/system-prompts-and-models-of-ai-tools",
+      "url": "https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools",
+      "commit": "2054f580b1203da061e8e3df3c6449de2ad7c322",
+      "commit_date": "2026-07-12",
+      "collected": "2026-07-28",
+      "include": "*.txt",
+      "prompts": 83,
+      "license_note": "The collection is distributed under GPL-3.0 (LICENSE.md at the pinned commit). That licence covers the maintainer's compilation; the prompt text belongs to the vendors it was taken from. Not redistributed here."
+    },
+    {
+      "key": "gpt_store",
+      "label": "GPT Store prompts",
+      "repo": "linexjlin/GPTs",
+      "url": "https://github.com/linexjlin/GPTs",
+      "commit": "3adfb7b38423b64a995057483c1f9007ed5f4da5",
+      "commit_date": "2024-09-27",
+      "collected": "2026-07-28",
+      "include": "prompts/*.md",
+      "prompts": 273,
+      "license_note": "The collection declares no licence. The prompt text belongs to the individual GPT authors. Not redistributed here."
+    }
+  ],
+  "groups": {
+    "production": {
+      "n": 83,
+      "median": 10,
+      "q1": 3,
+      "q3": 15,
+      "mean": 9.46,
+      "zeros": 20,
+      "zero_rate_pct": 24.1,
+      "max": 34,
+      "at_or_above_50": 0
+    },
+    "gpt_store": {
+      "n": 273,
+      "median": 0,
+      "q1": 0,
+      "q3": 4,
+      "mean": 1.61,
+      "zeros": 193,
+      "zero_rate_pct": 70.7,
+      "max": 16,
+      "at_or_above_50": 0
+    }
+  },
+  "analysis": {
+    "statistic": "Cliff's delta (Mann-Whitney U identity, midranks for ties)",
+    "significance_test": "two-sided permutation test on Cliff's delta, 10000 relabelings, seed 20260729, add-one corrected",
+    "interval_method": "percentile bootstrap on the same statistic, 10000 resamples within groups, seed 20260730",
+    "delta": 0.614,
+    "p_value": 0.0001,
+    "ci95": [
+      0.491,
+      0.729
+    ],
+    "alpha": 0.05,
+    "zero_floor_sensitivity": {
+      "n_production": 63,
+      "n_gpt_store": 80,
+      "delta": 0.667,
+      "p": 0.0001
+    }
+  },
+  "never_fired": [
+    "hallucination.grounding",
+    "audit.log_actions",
+    "audit.tamper_evident",
+    "audit.actor_attribution",
+    "compliance.data_protection"
+  ],
+  "probes": {
+    "hallucination.grounding": {
+      "hits": 1,
+      "n": 356,
+      "patterns": 5
+    },
+    "audit.log_actions": {
+      "hits": 1,
+      "n": 356,
+      "patterns": 3
+    },
+    "audit.tamper_evident": {
+      "hits": 2,
+      "n": 356,
+      "patterns": 1
+    },
+    "audit.actor_attribution": {
+      "hits": 0,
+      "n": 356,
+      "patterns": 4
+    },
+    "compliance.data_protection": {
+      "hits": 0,
+      "n": 356,
+      "patterns": 2
+    }
+  },
+  "disclaimer": "Coverage counts which of 23 safeguards the prompt TEXT states. It is not quality, not safety, not certification, and not evidence of runtime behaviour. A low score means the text is silent on a control, not that the product lacks it.",
+  "self_checks": 1118
+}

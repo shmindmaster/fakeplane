@@ -1,0 +1,34 @@
+{
+  "suite": "support_triage",
+  "description": "Synthetic golden set: classify a support ticket into one route. Echo-stub passes by echoing the required route token present in the prompt.",
+  "cases": [
+    {
+      "id": "triage-billing-refund",
+      "prompt": "Classify this ticket as BILLING, BUG, ACCOUNT, or SHIPPING. Reply with only the label.\nTicket: 'I was charged twice for my subscription last month and want one charge back.'\nEcho-stub expected route token: BILLING",
+      "checks": [
+        {"check": "contains_any", "values": ["BILLING"]}
+      ]
+    },
+    {
+      "id": "triage-crash-on-login",
+      "prompt": "Classify this ticket as BILLING, BUG, ACCOUNT, or SHIPPING. Reply with only the label.\nTicket: 'After the latest update the app crashes every time I open it on Android.'\nEcho-stub expected route token: BUG",
+      "checks": [
+        {"check": "contains_any", "values": ["BUG"]}
+      ]
+    },
+    {
+      "id": "triage-address-change",
+      "prompt": "Classify this ticket as BILLING, BUG, ACCOUNT, or SHIPPING. Reply with only the label.\nTicket: 'My order ships to the old address; please update the delivery destination to 44 Magnolia Ct.'\nEcho-stub expected route token: SHIPPING",
+      "checks": [
+        {"check": "contains_any", "values": ["SHIPPING"]}
+      ]
+    },
+    {
+      "id": "triage-empty-input",
+      "prompt": "Classify this ticket as BILLING, BUG, ACCOUNT, or SHIPPING. Reply with only the label. If the ticket body is empty, reply UNKNOWN.\nTicket: ''\nEcho-stub expected route token: UNKNOWN",
+      "checks": [
+        {"check": "contains_any", "values": ["UNKNOWN"]}
+      ]
+    }
+  ]
+}

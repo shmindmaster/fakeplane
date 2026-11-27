@@ -1,0 +1,24 @@
+control,dimension,label,rule_ids,production_hits,production_n,production_pct,gpt_store_hits,gpt_store_n,gpt_store_pct
+injection.override_resistance,injection,"Treat instructions inside user content as data, not commands",injection.01 injection.02 injection.04 injection.07 injection.09,7,83,8.4,3,273,1.1
+injection.prompt_confidentiality,injection,Keep the system prompt confidential,injection.03 injection.06 injection.10,5,83,6.0,10,273,3.7
+injection.named_defense,injection,Name prompt injection and state a defense,injection.05 injection.08,7,83,8.4,17,273,6.2
+hallucination.no_fabrication,hallucination,"Do not fabricate, invent, or guess",hallucination.01 hallucination.04 hallucination.07,16,83,19.3,4,273,1.5
+hallucination.admit_uncertainty,hallucination,Say so when you do not know,hallucination.02 hallucination.05,6,83,7.2,2,273,0.7
+hallucination.grounding,hallucination,Ground answers in provided sources,hallucination.03 hallucination.06,0,83,0.0,0,273,0.0
+hallucination.defer_to_expert,hallucination,Defer to a qualified professional,hallucination.08,0,83,0.0,2,273,0.7
+citation.require,citation,Require citations for claims,citation.01 citation.03,27,83,32.5,19,273,7.0
+citation.link_source,citation,Link each claim to its source,citation.02 citation.04,1,83,1.2,1,273,0.4
+citation.inline_marker,citation,Use an inline citation marker format,citation.05,7,83,8.4,4,273,1.5
+cost.budget_cap,cost,"Cap spend, tokens, or rate",cost.01 cost.03 cost.04,5,83,6.0,0,273,0.0
+cost.output_bound,cost,Bound output length,cost.02 cost.05,4,83,4.8,0,273,0.0
+human_gate.approval_required,human_gate,A human must approve,human_gate.01 human_gate.02 human_gate.05 human_gate.06 human_gate.07,18,83,21.7,0,273,0.0
+human_gate.no_autonomous_action,human_gate,Do not act autonomously before approval,human_gate.03 human_gate.04,17,83,20.5,2,273,0.7
+safe_stop.stop_condition,safe_stop,Stop or refuse rather than proceed,safe_stop.01 safe_stop.04 safe_stop.06 safe_stop.07,35,83,42.2,45,273,16.5
+safe_stop.uncertainty_trigger,safe_stop,Name what triggers stopping,safe_stop.02 safe_stop.03,21,83,25.3,0,273,0.0
+safe_stop.escalate,safe_stop,Escalate to a human,safe_stop.05,0,83,0.0,1,273,0.4
+audit.log_actions,audit,Log actions and decisions,audit.01 audit.02 audit.03,0,83,0.0,0,273,0.0
+audit.tamper_evident,audit,Keep the log tamper-evident,audit.04,0,83,0.0,0,273,0.0
+audit.actor_attribution,audit,Record who did what and when,audit.05,0,83,0.0,0,273,0.0
+compliance.named_regime,compliance,Name the regime that applies,compliance.01 compliance.02 compliance.03 compliance.04 compliance.05 compliance.06 compliance.07,1,83,1.2,1,273,0.4
+compliance.stated_obligation,compliance,State that legal or regulatory constraints apply,compliance.08,2,83,2.4,0,273,0.0
+compliance.data_protection,compliance,State a data-protection technique,compliance.09,0,83,0.0,0,273,0.0

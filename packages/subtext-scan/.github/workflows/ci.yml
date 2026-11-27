@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - run: docker compose run --build --rm test
+      - run: docker compose run --rm typecheck
+      - run: docker compose run --rm test npm audit --omit=dev --audit-level=high
+      - name: Malicious fixture fails the gate
+        run: |
+          set +e
+          docker compose run --rm test node bin/subtext-scan.mjs -q fixtures/pdf/supplier-certificate-hidden-note.pdf
+          code=$?
+          set -e
+          test "$code" -eq 1
+      - name: Repository prose stays under the high gate
+        run: >-
+          docker compose run --rm --volume ${{ github.workspace }}:/work:ro -w /work
+          test node /app/bin/subtext-scan.mjs
+          CONTRIBUTING.md SECURITY.md NOTICE README.md
+          docs/AGENTS.md docs/API.md docs/ARCHITECTURE.md docs/DATA.md
+          docs/DEPLOYMENT.md docs/DEVELOPMENT.md docs/INTEGRATIONS.md
+          docs/OPERATIONS.md docs/PRODUCT.md docs/SECURITY.md docs/TESTING.md
+      - name: Fixtures match the generator
+        run: |
+          docker compose run --rm fixtures
+          test -z "$(git status --porcelain --untracked-files=all -- fixtures/)"
+      - run: docker compose run --rm test npm run smoke:package

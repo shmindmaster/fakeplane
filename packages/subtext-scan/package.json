@@ -1,0 +1,75 @@
+{
+  "name": "subtext-scan",
+  "version": "0.1.0",
+  "description": "Catch the instructions hidden in a document before your agent follows them. Finds text a model reads but a person cannot see in PDF, DOCX and HTML (white-on-white, tiny, off-page, invisible render mode, hidden layers, covered text, metadata and annotation payloads) and flags prompt-injection phrasing. CLI, library and MCP server.",
+  "type": "module",
+  "bin": {
+    "subtext-scan": "bin/subtext-scan.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.mjs"
+    },
+    "./mcp": "./src/mcp.mjs",
+    "./package.json": "./package.json"
+  },
+  "types": "./src/index.d.ts",
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "author": "Sarosh Hussain",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shmindmaster/subtext-scan.git"
+  },
+  "homepage": "https://github.com/shmindmaster/subtext-scan#readme",
+  "bugs": {
+    "url": "https://github.com/shmindmaster/subtext-scan/issues"
+  },
+  "keywords": [
+    "prompt-injection",
+    "indirect-prompt-injection",
+    "hidden-text",
+    "pdf",
+    "docx",
+    "html",
+    "llm-security",
+    "rag",
+    "ai-agents",
+    "mcp",
+    "document-ai"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "test": "node --test",
+    "fixtures": "node scripts/generate-fixtures.mjs",
+    "scan": "node bin/subtext-scan.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "smoke:package": "node scripts/smoke-package.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.4.0",
+    "fflate": "^0.8.3",
+    "htmlparser2": "^12.0.0",
+    "pdfjs-dist": "^6.5.438",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@types/node": "^26.6.6",
+    "pdf-lib": "^1.17.1",
+    "typescript": "^7.0.2"
+  }
+}

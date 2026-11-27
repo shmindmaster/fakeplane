@@ -1,0 +1,11 @@
+Agent prompt safeguards 2026
+Copyright 2026 Sarosh Hussain
+
+Code (scoring/, tests/) is licensed under the Apache License, Version 2.0 (LICENSE).
+Data (data/, figures/, docs/RESULTS.md) is licensed under CC BY 4.0 (LICENSE-DATA).
+
+scoring/rules.py is derived from the author's earlier, now-archived
+prompt-scoring tool (version 0.6.14) and is relicensed here under Apache-2.0.
+
+This repository contains no third-party prompt text. Prompts are identified by
+upstream path, URL at a pinned commit, and content hash only.
