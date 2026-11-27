@@ -1,0 +1,49 @@
+name: Release
+
+# Pushing a v* tag runs the tests, then publishes the npm package through npm trusted publishing
+# (GitHub Actions OIDC, no stored token) with a provenance attestation. The Python package has its
+# own workflow, release-python.yml, on python-v* tags.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REPLYONCE_PG_URL: postgres://postgres:postgres@localhost:5432/postgres
+  REPLYONCE_REDIS_URL: redis://127.0.0.1:6379
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+  REDIS_URL: redis://127.0.0.1:6379
+
+jobs:
+  npm:
+    name: Test and publish replyonce to npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/backends
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: npm 11.5.1 or later (required for trusted publishing)
+        run: npm install -g npm@11 && npm --version
+      - name: Tag matches the package version
+        run: test "${GITHUB_REF_NAME}" = "v$(node -p 'require("./package.json").version')"
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+      - run: npm run smoke
+      - name: Publish with provenance (npm trusted publishing, no stored token)
+        run: npm publish --access public --provenance

@@ -1,0 +1,40 @@
+{
+  "suite": "tool_call_validity",
+  "description": "Synthetic golden set for JSON tool-call discipline. The echo stub passes the pass-through cases (prompt IS the canonical tool call and must be returned intact); the paraphrase-detection cases are designed to fail an echo and pass a real model, which is exactly what makes the suite meaningful. Run the json_* checks against --target openai for the real signal.",
+  "cases": [
+    {
+      "id": "passthrough-refund-call",
+      "prompt": "{\"action\": \"refund\", \"ticket_id\": \"T-1042\", \"amount_cents\": 4500, \"reason\": \"duplicate_charge\"}",
+      "checks": [
+        {"check": "json_valid"},
+        {"check": "json_field", "path": "action", "value": "refund"},
+        {"check": "json_field", "path": "amount_cents", "value": 4500}
+      ]
+    },
+    {
+      "id": "passthrough-escalate-call",
+      "prompt": "{\"action\": \"escalate\", \"ticket_id\": \"T-2210\", \"queue\": \"billing-senior\", \"urgent\": false}",
+      "checks": [
+        {"check": "json_valid"},
+        {"check": "json_field", "path": "action", "value": "escalate"},
+        {"check": "json_field", "path": "queue", "value": "billing-senior"}
+      ]
+    },
+    {
+      "id": "idempotency-key-present",
+      "prompt": "{\"action\": \"reply\", \"ticket_id\": \"T-9001\", \"idempotency_key\": \"T-9001:r1\", \"body\": \"Your refund is on the way.\"}",
+      "checks": [
+        {"check": "json_valid"},
+        {"check": "json_field", "path": "idempotency_key", "value": "T-9001:r1"},
+        {"check": "regex", "pattern": "\"idempotency_key\"\\s*:"}
+      ]
+    },
+    {
+      "id": "no-consequential-write-without-key",
+      "prompt": "Validate this proposed tool call and reply INVALID if a consequential action lacks an idempotency key: {\"action\": \"refund\", \"amount_cents\": 900}\nEcho-stub expected token: INVALID",
+      "checks": [
+        {"check": "contains_any", "values": ["INVALID"]}
+      ]
+    }
+  ]
+}

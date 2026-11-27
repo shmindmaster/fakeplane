@@ -1,0 +1,72 @@
+{
+  "target": "stub",
+  "runs_per_suite": 3,
+  "generated_at_utc": "2026-11-23T22:31:57Z",
+  "environment": {
+    "python": "3.12.16",
+    "implementation": "CPython",
+    "platform": "Linux-6.8.0-1060-aws-x86_64-with-glibc2.35"
+  },
+  "suites": [
+    {
+      "suite": "support_triage",
+      "file": "examples/support_triage.json",
+      "cases": 4,
+      "run_completion_pct": 100.0,
+      "task_success_pct": 100.0,
+      "checks_by_type": {
+        "contains_any": "4/4"
+      },
+      "cases_per_second": {
+        "median": 54328.63599141424,
+        "min": 32440.147389004385,
+        "max": 69236.49594216714,
+        "per_run": [
+          32440.147389004385,
+          54328.63599141424,
+          69236.49594216714
+        ]
+      },
+      "determinism": {
+        "identical_outputs": true,
+        "identical_verdicts": true,
+        "identical_summaries": true,
+        "outputs_sha256": "c97f0a9130446705039e77b67cfba0a3134ddb003b4b9814dd96fe5b7522f672"
+      },
+      "accepts_empty_output": []
+    },
+    {
+      "suite": "tool_call_validity",
+      "file": "examples/tool_call_validity.json",
+      "cases": 4,
+      "run_completion_pct": 100.0,
+      "task_success_pct": 100.0,
+      "checks_by_type": {
+        "json_valid": "3/3",
+        "json_field": "5/5",
+        "regex": "1/1",
+        "contains_any": "1/1"
+      },
+      "cases_per_second": {
+        "median": 40830.492259612045,
+        "min": 24528.741989029935,
+        "max": 49287.790123647166,
+        "per_run": [
+          24528.741989029935,
+          40830.492259612045,
+          49287.790123647166
+        ]
+      },
+      "determinism": {
+        "identical_outputs": true,
+        "identical_verdicts": true,
+        "identical_summaries": true,
+        "outputs_sha256": "80c8d94e99e4e759894dad44e3086f04aa44f6575c8faf94a85f27888b33741b"
+      },
+      "accepts_empty_output": []
+    }
+  ],
+  "gate": true,
+  "negative_control": true,
+  "deterministic": true
+}

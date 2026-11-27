@@ -1,0 +1,9 @@
+.git
+.github
+node_modules
+dist
+coverage
+python/.venv
+**/__pycache__
+**/.pytest_cache
+docs

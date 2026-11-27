@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this dataset, please cite it as below."
+type: dataset
+title: "Agent prompt safeguards 2026: written safeguards in 356 AI system prompts"
+version: 1.0.0
+date-released: 2026-10-23
+authors:
+  - family-names: Hussain
+    given-names: Sarosh
+license: CC-BY-4.0
+repository-code: "https://github.com/shmindmaster/safeguards"
+url: "https://saroshhussain.com/blog/what-356-ai-system-prompts-write-down"
+keywords:
+  - AI agents
+  - system prompts
+  - AI safety
+  - guardrails
+  - prompt injection
+  - human in the loop
+abstract: >-
+  Per-prompt coverage of 23 written safeguards in 356 publicly collected AI
+  system prompts (83 production agent prompts, 273 GPT Store prompts), with
+  pinned-source identifiers, content hashes, and a re-runnable scoring script.
+  Measures what prompt text states, not runtime behaviour. Prompt text is not
+  redistributed.

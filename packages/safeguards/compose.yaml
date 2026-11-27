@@ -1,0 +1,33 @@
+name: safeguards
+
+x-app: &app
+  image: safeguards:local
+  build:
+    context: .
+    dockerfile: infra/docker/Dockerfile
+  environment:
+    PYTHONDONTWRITEBYTECODE: "1"
+    PYTHONPYCACHEPREFIX: /tmp/pyc
+
+services:
+  test:
+    <<: *app
+    command: ["python", "tests/test_dataset.py"]
+    volumes:
+      - ./scoring:/app/scoring:ro
+      - ./tests:/app/tests:ro
+      - ./data:/app/data:ro
+      - ./docs:/app/docs:ro
+
+  score:
+    <<: *app
+    command: ["python", "scoring/score.py", "--check"]
+    volumes:
+      - ./scoring:/app/scoring:ro
+      - ./data:/app/data:ro
+      - ./docs:/app/docs:ro
+      - ./figures:/app/figures:ro
+      - safeguards-cache:/app/.cache
+
+volumes:
+  safeguards-cache:

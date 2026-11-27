@@ -1,0 +1,255 @@
+#!/usr/bin/env python3
+"""Reproducible benchmark of the eval harness against the built-in stub target.
+
+Runs harness/run_evals.py over every suite in examples/ several times, then
+writes benchmarks/BENCHMARK_RESULTS.json and renders benchmarks/BENCHMARKS.md.
+Zero dependencies (Python 3.9+ stdlib), like the harness itself.
+
+Usage:
+  python benchmarks/run_benchmark.py [--runs 3]
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import platform
+import statistics
+import sys
+import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+HARNESS = ROOT / "harness" / "run_evals.py"
+SUITES = ROOT / "examples"
+OUT_DIR = Path(__file__).resolve().parent
+TARGET = "stub"
+
+# Leave no __pycache__ behind in harness/ when loading it.
+sys.dont_write_bytecode = True
+
+
+def load_harness():
+    spec = importlib.util.spec_from_file_location("run_evals", HARNESS)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def digest(value):
+    canonical = json.dumps(value, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def run_once(harness, path):
+    """One harness pass over a suite, capturing the raw target outputs."""
+    outputs = []
+    stub = harness.call_stub
+
+    def recording_stub(prompt):
+        output, usage = stub(prompt)
+        outputs.append(output)
+        return output, usage
+
+    harness.call_stub = recording_stub
+    try:
+        started = time.perf_counter()
+        name, rows = harness.evaluate_suite(path, TARGET, None)
+        seconds = time.perf_counter() - started
+    finally:
+        harness.call_stub = stub
+    # Per-case wall time is the only field expected to vary between runs.
+    verdicts = [{k: v for k, v in row.items() if k != "ms"} for row in rows]
+    return {
+        "suite": name,
+        "summary": harness.summarize(name, rows),
+        "seconds": seconds,
+        "cases_per_second": len(rows) / seconds if seconds else None,
+        "outputs_sha256": digest(outputs),
+        "verdicts_sha256": digest(verdicts),
+    }
+
+
+def negative_control(harness, path):
+    """Cases that still pass on an empty output: their checks accept anything."""
+    suite = json.loads(path.read_text(encoding="utf-8"))
+    return [case["id"] for case in suite["cases"]
+            if all(c["ok"] for c in harness.run_checks("", case.get("checks", [])))]
+
+
+def benchmark(runs):
+    harness = load_harness()
+    paths = sorted(SUITES.glob("*.json"))
+    if not paths:
+        raise SystemExit(f"no suites found in {SUITES}")
+    suites = []
+    for path in paths:
+        passes = [run_once(harness, path) for _ in range(runs)]
+        rates = [p["cases_per_second"] for p in passes]
+        summaries = [p["summary"] for p in passes]
+        first = summaries[0]
+        suites.append({
+            "suite": first["suite"],
+            "file": path.relative_to(ROOT).as_posix(),
+            "cases": first["cases"],
+            "run_completion_pct": first["run_completion"],
+            "task_success_pct": first["task_success"],
+            "checks_by_type": first["checks_by_type"],
+            "cases_per_second": {
+                "median": statistics.median(rates),
+                "min": min(rates),
+                "max": max(rates),
+                "per_run": rates,
+            },
+            "determinism": {
+                "identical_outputs": len({p["outputs_sha256"] for p in passes}) == 1,
+                "identical_verdicts": len({p["verdicts_sha256"] for p in passes}) == 1,
+                "identical_summaries": all(s == first for s in summaries),
+                "outputs_sha256": passes[0]["outputs_sha256"],
+            },
+            "accepts_empty_output": negative_control(harness, path),
+        })
+    return {
+        "target": TARGET,
+        "runs_per_suite": runs,
+        "generated_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "environment": {
+            "python": platform.python_version(),
+            "implementation": platform.python_implementation(),
+            "platform": platform.platform(),
+        },
+        "suites": suites,
+        "gate": all(s["run_completion_pct"] == 100.0 and s["task_success_pct"] == 100.0
+                    for s in suites),
+        "negative_control": all(not s["accepts_empty_output"] for s in suites),
+        "deterministic": all(all(s["determinism"][k] for k in
+                                 ("identical_outputs", "identical_verdicts",
+                                  "identical_summaries"))
+                             for s in suites),
+    }
+
+
+def yes_no(flag):
+    return "yes" if flag else "**NO**"
+
+
+def render(results):
+    runs = results["runs_per_suite"]
+    env = results["environment"]
+    lines = [
+        "# Benchmarks",
+        "",
+        "Generated by `python benchmarks/run_benchmark.py` "
+        f"({runs} runs per suite against the harness's built-in `{results['target']}` target). "
+        "Raw data: [`BENCHMARK_RESULTS.json`](BENCHMARK_RESULTS.json).",
+        "",
+        f"Environment: Python {env['python']} ({env['implementation']}) on "
+        f"`{env['platform']}`, {results['generated_at_utc']}.",
+        "",
+        "## Outcomes",
+        "",
+        "| Suite | Cases | Run completion | Task success |",
+        "|---|---:|---:|---:|",
+    ]
+    for s in results["suites"]:
+        lines.append(f"| `{s['suite']}` | {s['cases']} | {s['run_completion_pct']}% "
+                     f"| {s['task_success_pct']}% |")
+    lines += [
+        "",
+        f"Release gate (100% completion and success on every suite): "
+        f"**{'PASS' if results['gate'] else 'FAIL'}**",
+        "",
+        "## Checks by type",
+        "",
+        "| Suite | Check | Passed / run |",
+        "|---|---|---:|",
+    ]
+    for s in results["suites"]:
+        for check, tally in s["checks_by_type"].items():
+            lines.append(f"| `{s['suite']}` | `{check}` | {tally} |")
+    lines += [
+        "",
+        "## Throughput",
+        "",
+        "| Suite | Median cases/s | Min | Max |",
+        "|---|---:|---:|---:|",
+    ]
+    for s in results["suites"]:
+        r = s["cases_per_second"]
+        lines.append(f"| `{s['suite']}` | {r['median']:,.0f} | {r['min']:,.0f} "
+                     f"| {r['max']:,.0f} |")
+    lines += [
+        "",
+        "## Determinism",
+        "",
+        "| Suite | Identical outputs | Identical verdicts | Identical summaries |",
+        "|---|---|---|---|",
+    ]
+    for s in results["suites"]:
+        d = s["determinism"]
+        lines.append(f"| `{s['suite']}` | {yes_no(d['identical_outputs'])} "
+                     f"| {yes_no(d['identical_verdicts'])} "
+                     f"| {yes_no(d['identical_summaries'])} |")
+    lines += [
+        "",
+        "## Negative control",
+        "",
+        "Every case is also run against an empty output, which must fail it. "
+        "This catches a checker that passes everything. It does not show that each "
+        "individual check works: a case fails when any one of its checks does.",
+        "",
+        "| Suite | Cases passing on empty output |",
+        "|---|---|",
+    ]
+    for s in results["suites"]:
+        bad = s["accepts_empty_output"]
+        lines.append(f"| `{s['suite']}` | "
+                     f"{'none' if not bad else '**' + ', '.join(bad) + '**'} |")
+    lines += [
+        "",
+        "## Methodology",
+        "",
+        "- **Completion vs success.** Run completion is the share of cases where the "
+        "target returned an output without error; task success is the share where it "
+        "completed *and* every check passed. A run can complete and still fail, so the "
+        "two are reported separately and the gate requires both.",
+        "- **Why benchmark a stub.** The stub echoes the prompt, so these numbers say "
+        "nothing about model quality. They pin the harness itself: the same suites "
+        "must give the same verdicts every run. A changed check, a parser change or "
+        "an edited golden set shows up here as a moved number or a determinism "
+        "failure before it can distort a real model comparison. That makes this a "
+        "regression test for the harness.",
+        f"- **Determinism.** Each suite runs {runs} times in one process. Outputs are "
+        "the raw target responses; verdicts are the per-case records with wall time "
+        "removed; both are compared by SHA-256.",
+        "- **Throughput** is cases divided by wall time for `evaluate_suite`, with no "
+        "network calls. It measures harness overhead, varies by machine, and is the "
+        "only figure expected to change between runs.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--runs", type=int, default=3, help="runs per suite (default 3)")
+    args = ap.parse_args(argv)
+    if args.runs < 2:
+        ap.error("--runs must be at least 2 to check determinism")
+
+    results = benchmark(args.runs)
+    (OUT_DIR / "BENCHMARK_RESULTS.json").write_text(
+        json.dumps(results, indent=2) + "\n", encoding="utf-8")
+    (OUT_DIR / "BENCHMARKS.md").write_text(render(results), encoding="utf-8")
+    for s in results["suites"]:
+        print(f"[{s['suite']}] completion={s['run_completion_pct']}% "
+              f"success={s['task_success_pct']}% checks={s['checks_by_type']} "
+              f"median_cases_per_s={s['cases_per_second']['median']:,.0f} "
+              f"deterministic={all(s['determinism'][k] for k in ('identical_outputs', 'identical_verdicts', 'identical_summaries'))}")
+    print("GATE:", "PASS" if results["gate"] else "FAIL")
+    print("DETERMINISTIC:", "yes" if results["deterministic"] else "NO")
+    print("NEGATIVE CONTROL:", "PASS" if results["negative_control"] else "FAIL")
+    return 0 if all(results[k] for k in ("gate", "deterministic", "negative_control")) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

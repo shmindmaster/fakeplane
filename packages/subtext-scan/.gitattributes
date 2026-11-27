@@ -1,0 +1,3 @@
+* text=auto eol=lf
+# Generated fixtures are compared byte for byte in CI.
+fixtures/** -text

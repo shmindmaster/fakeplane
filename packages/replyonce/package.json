@@ -1,0 +1,109 @@
+{
+  "name": "replyonce",
+  "version": "0.1.1",
+  "description": "Stop your agent from replying, refunding or ticketing twice. Idempotency keys, per-conversation write fencing and an effect ledger for tool-calling agents, webhook handlers and queue workers.",
+  "license": "Apache-2.0",
+  "author": "Sarosh Hussain (https://github.com/shmindmaster)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shmindmaster/replyonce.git"
+  },
+  "homepage": "https://github.com/shmindmaster/replyonce#readme",
+  "bugs": {
+    "url": "https://github.com/shmindmaster/replyonce/issues"
+  },
+  "keywords": [
+    "idempotency",
+    "exactly-once",
+    "ai-agents",
+    "llm",
+    "tool-calling",
+    "side-effects",
+    "webhooks",
+    "bullmq",
+    "fencing-token",
+    "outbox",
+    "postgres",
+    "redis"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./postgres": {
+      "import": {
+        "types": "./dist/postgres.d.ts",
+        "default": "./dist/postgres.js"
+      },
+      "require": {
+        "types": "./dist/postgres.d.cts",
+        "default": "./dist/postgres.cjs"
+      }
+    },
+    "./redis": {
+      "import": {
+        "types": "./dist/redis.d.ts",
+        "default": "./dist/redis.js"
+      },
+      "require": {
+        "types": "./dist/redis.d.cts",
+        "default": "./dist/redis.cjs"
+      }
+    },
+    "./adapters": {
+      "import": {
+        "types": "./dist/adapters.d.ts",
+        "default": "./dist/adapters.js"
+      },
+      "require": {
+        "types": "./dist/adapters.d.cts",
+        "default": "./dist/adapters.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "replyonce": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "node test/smoke.mjs && node test/smoke.cjs",
+    "demo": "node dist/cli.js demo",
+    "prepublishOnly": "npm run typecheck && npm run build && npm test && npm run smoke"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.11.0",
+    "bullmq": "^6.3.19",
+    "ioredis": "^6.0.0",
+    "pg": "^8.13.0",
+    "tsup": "^9.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.5"
+  }
+}
